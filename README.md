@@ -9,6 +9,9 @@ Add the following dependency to your `project.clj` file:
 
     [cumin "0.1.0"]
 
+## Documentaion
+* [API docs](http://kgann.github.io/cumin)
+
 ## Pagination
 
 ```clojure
@@ -57,6 +60,108 @@ Prevent additional query and just apply a `limit` and `offset` to query
 (-> base (paginate :page 3 :meta? false) (select))
 ;; SELECT `person`.* FROM `person` WHERE `person`.`age` > 30 LIMIT 25 OFFSET 50
 ;; NO ADDITIONAL QUERY
+```
+
+## Eager Loading
+
+Eager load records without using Korma relationships. Specify primary and foreign keys inline.
+
+A call to `include` must have an options map containing at least the primary key from the parent and the foreign key of the relationship.
+
+```clojure
+(use 'cumin.core)
+
+(defentity person)
+(defentity email)
+(defentity email-body)
+```
+
+Eagerly load all valid emails
+
+```clojure
+(select person
+  (include email {:id :person_id}
+           (where {:valid true})))
+;; => [{:name Kyle
+;;      :age 30
+;;      :email [{:address "foo@bar.com" :valid true}]}
+;;    ... ]
+```
+
+Eagerly load invalid emails and store in `:invalid_email` key
+
+```clojure
+(select person
+  (include email {:id :person_id :as :invalid_email}
+           (where {:valid false})))
+;; => [{:name Kyle
+;;      :age 30
+;;      :invalid_email [{:address "bad@invalid.com" :valid false}]}
+;;    ... ]
+```
+
+Nest `include` calls arbitrarily
+
+```clojure
+(select person
+  (include email {:id :person_id :as :invalid_email}
+           (where {:valid true})
+           (include email-body {:id :email_id}
+                    (fields :body :id))))
+;; => [{:name Kyle
+;;      :age 30
+;;      :email [{:address "foo@bar.com"
+;;               :valid true
+;;               :email_body [{:body "..." :id 1}]}]}
+;;    ... ]
+```
+
+Join any information you want and use that for the eager loading
+
+```clojure
+(select person
+  (fields :* [:emails.id :email_id])
+  (join :inner email (= :id :emails.person_id))
+  (include email-body {:email_id :email_id}))
+;; => [{:name Kyle
+;;      :age 30
+;;      :email_id 10
+;;      :email_body [{:body "..." :id 1 :email_id 10}]}
+;;    ... ]
+```
+
+## Post Ordering
+
+Order result set based on a `fn` and a collection of values.
+Useful when gathering ID's from another resource (Elastic Search) and fetching records from SQL.
+
+```clojure
+(use 'cumin.core)
+
+(defentity person)
+
+(def ids [1 3 5 9 7])
+
+(select person
+  (where {:id [in ids]})
+  (post-order :id ids)) ;; records with ID's other than 1, 3, 5, 9 or 7
+                        ;; are appended and retain their original ordering
+```
+
+## Re Ordering
+
+```clojure
+(use 'cumin.core)
+
+(defentity person)
+
+(def base (-> (select* person) (order :id)))
+
+(select (-> base (re-order :name)))
+;; SELECT `person`.* FROM `person` ORDER BY `person`.`name` ASC
+
+(select (-> base (re-order :name :desc)))
+;; SELECT `person`.* FROM `person` ORDER BY `person`.`name` DESC
 ```
 
 ## License
