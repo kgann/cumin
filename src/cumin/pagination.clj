@@ -34,12 +34,12 @@
   (let [{:keys [page per-page]} (::pagination query)
         total (select-total query)
         page-count (total-pages total per-page)]
-    (vary-meta coll assoc :page {:total total
-                                 :per per-page
-                                 :curr page
-                                 :prev (prev-page page)
-                                 :next (next-page page-count page)
-                                 :last page-count})))
+    (vary-meta coll assoc ::pagination {:total total
+                                        :per per-page
+                                        :curr page
+                                        :prev (prev-page page)
+                                        :next (next-page page-count page)
+                                        :last page-count})))
 
 (defn ^:no-doc exec-paginated
   [f query & args]
@@ -68,6 +68,18 @@
   [query]
   (contains? query ::pagination))
 
+(defn page-info
+  "Return pagination map from result set:
+
+   * `:total` - total number of records for all pages
+   * `:per`   - per page argument
+   * `:curr`  - current page number
+   * `:prev`  - previous page number, nil if no previous page
+   * `:next`  - next page number, nil if no next page
+   * `:last`  - last page number"
+  [coll]
+  (::pagination (meta coll)))
+
 (defn paginate
   "Paginate a Korma query
 
@@ -77,16 +89,6 @@
    * `:per-page` - number of records to select
    * `:meta?` - false to prevent post-query from firing
                 and associng metadata map (default true)
-
-   Metadata key `:page` contains:
-
-   * `:total` - total number of records for all pages
-   * `:per`   - per page argument
-   * `:curr`  - current page number
-   * `:prev`  - previous page number, nil if no previous page
-   * `:next`  - next page number, nil if no next page
-   * `:last`  - last page number
-
   ```
   (select person
     (where {:age [> 30]})

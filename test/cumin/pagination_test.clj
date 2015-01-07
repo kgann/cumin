@@ -62,23 +62,21 @@
     (let [r1 (select person (paginate :page 2 :per-page 2))
           r2 (select person (paginate :page 1 :per-page 5))
           r3 (select person (paginate :page 2 :per-page 2 :meta? false))]
-      (is (= (:page (meta r1))
-             {:total 5
-              :per 2
-              :curr 2
-              :prev 1
-              :next 3
-              :last 3}))
+      (is (= (page-info r1) {:total 5
+                             :per 2
+                             :curr 2
+                             :prev 1
+                             :next 3
+                             :last 3}))
 
-      (is (= (:page (meta r2))
-             {:total 5
-              :per 5
-              :curr 1
-              :prev nil
-              :next nil
-              :last 1}))
+      (is (= (page-info r2) {:total 5
+                             :per 5
+                             :curr 1
+                             :prev nil
+                             :next nil
+                             :last 1}))
 
-      (is (nil? (:page (meta r3))))))
+      (is (nil? (page-info r3)))))
 
   (testing "metadata query removes post-queries, limit, offset, and order"
     (is (= (with-out-str
