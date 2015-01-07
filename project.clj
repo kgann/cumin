@@ -1,6 +1,16 @@
 (defproject cumin "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+  :description "Cumin - some spice for your Korma SQL"
+  :url "http://github.com/kgann/cumin"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.6.0"]])
+
+  :dependencies [[org.clojure/clojure "1.6.0"]
+                 [robert/hooke "1.3.0"]
+                 [org.clojure/tools.logging "0.3.0"]]
+
+  :profiles {:dev {:plugins [[codox "0.8.10"]]
+                   :dependencies [[korma "0.4.0"]
+                                  [com.h2database/h2 "1.3.164"]]
+                   :codox {:src-dir-uri "http://github.com/kgann/cumin/tree/master/"
+                           :src-linenum-anchor-prefix "L"
+                           :defaults {:doc/format :markdown}}}})
