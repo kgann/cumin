@@ -30,8 +30,7 @@
       (ffirst)
       (last)))
 
-(defn- with-page-meta
-  [query coll]
+(defn- with-page-meta [query coll]
   (let [{:keys [page per-page]} (::pagination query)
         total (select-total query)
         page-count (total-pages total per-page)]
@@ -55,9 +54,11 @@
 (defn per-page
   "Assoc `per-page` default into entity map
 
+   ```
    (defentity person
      (table :people)
-     (per-page 15))"
+     (per-page 15))
+  ```"
   [ent i]
   {:pre [(number? i) (pos? i)]}
   (assoc ent ::per-page i))
@@ -71,22 +72,26 @@
   "Paginate a Korma query
 
    Options:
-     - :page - page of query results
-     - :per-page - number of records to select
-     - :meta? - false to prevent post-query from firing
+
+   * `:page` - page of query results
+   * `:per-page` - number of records to select
+   * `:meta?` - false to prevent post-query from firing
                 and associng metadata map (default true)
 
    Metadata key `:page` contains:
-     - :total - total number of records for all pages
-     - :per   - per page argument
-     - :curr  - current page number
-     - :prev  - previous page number, nil if no previous page
-     - :next  - next page number, nil if no next page
-     - :last  - last page number
 
+   * `:total` - total number of records for all pages
+   * `:per`   - per page argument
+   * `:curr`  - current page number
+   * `:prev`  - previous page number, nil if no previous page
+   * `:next`  - next page number, nil if no next page
+   * `:last`  - last page number
+
+  ```
   (select person
     (where {:age [> 30]})
-    (paginate :page 3 :per-page 25))"
+    (paginate :page 3 :per-page 25))
+  ```"
   [query & {:keys [page per-page meta?]
             :or {meta? true
                  per-page (get-in query [:ent ::per-page] per-page-default)}}]
