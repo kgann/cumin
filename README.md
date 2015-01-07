@@ -59,6 +59,52 @@ Prevent additional query and just apply a `limit` and `offset` to query
 ;; NO ADDITIONAL QUERY
 ```
 
+## Eager Loading
+
+```clojure
+(use 'cumin.core)
+
+(defentity person)
+(defentity email)
+
+(select person
+  (include email {:id :person_id}
+           (where {:created_at [not= nil]})))
+
+```
+
+## Post Ordering
+
+Order result set based on a `fn` and a collection of values.
+Useful when gathering ID's from another resource (Elastic Search) and fetching records from SQL.
+
+```clojure
+(use 'cumin.core)
+
+(defentity person)
+
+(select person
+  (post-order :id [1 3 5])) ;; records with ID's other than 1,3 or 5
+                            ;; are appended and retain their original ordering
+```
+
+## Re-ordering
+
+
+```clojure
+(use 'cumin.core)
+
+(defentity person)
+
+(def base (-> (select* person) (order :id)))
+
+(select (-> base (re-order :name)))
+;; SELECT `person`.* FROM `person` ORDER BY `person`.`name` ASC
+
+(select (-> base (re-order :name :desc)))
+;; SELECT `person`.* FROM `person` ORDER BY `person`.`name` DESC
+```
+
 ## License
 
 Copyright © 2015 Kyle Gann

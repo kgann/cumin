@@ -31,7 +31,12 @@
                                                 (-> q# ~@body)))))
 
 (defn force-index
-  "Force the use of `index` for `query`"
+  "Force the use of `index` for `query`
+
+  ```
+  (select person
+    (force-index \"person_index\"))
+  ```"
   [query index]
   (update-in query
              [:from 0 :table]
@@ -39,13 +44,26 @@
              (name index)))
 
 (defn re-order
-  "Remove any `order` clause from a query map and replace with `[field dir]`"
+  "Remove any `order` clause from a query map and replace with `[field dir]`
+
+  ```
+  (-> (select* person)
+      (order :name)
+      (re-order :id))
+  ```"
   [query field & [dir]]
   (-> query (assoc :order []) (order field dir)))
 
 
 (defn post-order
-  "Setup post-query to order results based ok `f` and `coll`"
+  "Setup post-query to order results based on `f` and `coll`
+   any record where (f record) is not in `coll` will be appended
+   in their original SQL ordering.
+
+  ```
+  (select person
+    (post-order :id [5 4 3 2 1]))
+  ```"
   [query f coll]
   (post-query query (fn [rows]
                       (let [grouped (into {} (map (juxt f identity) rows))]
