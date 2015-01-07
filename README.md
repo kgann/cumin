@@ -9,6 +9,9 @@ Add the following dependency to your `project.clj` file:
 
     [cumin "0.1.0"]
 
+## Documentaion
+* [API docs](http://kgann.github.io/cumin)
+
 ## Pagination
 
 ```clojure
