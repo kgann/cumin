@@ -61,16 +61,72 @@ Prevent additional query and just apply a `limit` and `offset` to query
 
 ## Eager Loading
 
+Eager load records without using Korma relationships. Specify primary and foreign keys inline.
+
+A call to `include` must have an options map containing at least the primary key from the parent and the foreign key of the relationship.
+
 ```clojure
 (use 'cumin.core)
 
 (defentity person)
 (defentity email)
+(defentity email-body)
+```
 
+Eagerly load all valid emails
+
+```clojure
 (select person
   (include email {:id :person_id}
-           (where {:created_at [not= nil]})))
+           (where {:valid true})))
 
+;; => [{:name Kyle
+;;      :age 30
+;;      :email [{:address "foo@bar.com" :valid true}]}
+;;    ... ]
+```
+
+Eagerly load invalid emails and store in `:invalid_email` key
+
+```clojure
+(select person
+  (include email {:id :person_id :as :invalid_email}
+           (where {:valid false})))
+
+;; => [{:name Kyle
+;;      :age 30
+;;      :invalid_email [{:address "bad@invalid.com" :valid false}]}
+;;    ... ]
+```
+
+Nest `include` calls arbitrarily
+
+```clojure
+(select person
+  (include email {:id :person_id :as :invalid_email}
+           (where {:valid true})
+           (include email-body {:id :email_id}
+                    (fields :body :id))))
+;; => [{:name Kyle
+;;      :age 30
+;;      :email [{:address "foo@bar.com"
+;;               :valid true
+;;               :email_body [{:body "..." :id 1}]}]}
+;;    ... ]
+```
+
+Join any information you want and use that for the eager loading
+
+```clojure
+(select person
+  (fields :* [:emails.id :email_id])
+  (join :inner email (= :id :emails.person_id))
+  (include email-body {:email_id :email_id}))
+;; => [{:name Kyle
+;;      :age 30
+;;      :email_id 10
+;;      :email_body [{:body "..." :id 1 :email_id 10}]}
+;;    ... ]
 ```
 
 ## Post Ordering
@@ -88,8 +144,7 @@ Useful when gathering ID's from another resource (Elastic Search) and fetching r
                             ;; are appended and retain their original ordering
 ```
 
-## Re-ordering
-
+## Re Ordering
 
 ```clojure
 (use 'cumin.core)
