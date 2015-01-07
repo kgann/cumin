@@ -79,7 +79,6 @@ Eagerly load all valid emails
 (select person
   (include email {:id :person_id}
            (where {:valid true})))
-
 ;; => [{:name Kyle
 ;;      :age 30
 ;;      :email [{:address "foo@bar.com" :valid true}]}
@@ -92,7 +91,6 @@ Eagerly load invalid emails and store in `:invalid_email` key
 (select person
   (include email {:id :person_id :as :invalid_email}
            (where {:valid false})))
-
 ;; => [{:name Kyle
 ;;      :age 30
 ;;      :invalid_email [{:address "bad@invalid.com" :valid false}]}
