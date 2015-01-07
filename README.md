@@ -15,10 +15,10 @@ Add the following dependency to your `project.clj` file:
 ## Pagination
 
 ```clojure
-(use 'cumin.pagination)
+(require '[cumin.pagination :as c])
 
 (defentity person
-  (per-page 25))
+  (c/per-page 25))
 
 (def base
   (-> (select* person)
@@ -28,7 +28,7 @@ Add the following dependency to your `project.clj` file:
 Paginate query using the default `per-page` set on the entity
 
 ```clojure
-(-> base (paginate :page 3) (select))
+(-> base (c/paginate :page 3) (select))
 ;; SELECT `person`.* FROM `person` WHERE `person`.`age` > 30 LIMIT 25 OFFSET 50
 ;; SELECT COUNT(`person`.`id`) AS `count` FROM `person`
 ```
@@ -36,20 +36,20 @@ Paginate query using the default `per-page` set on the entity
 Paginate query and specify `:per-page`
 
 ```clojure
-(-> base (paginate :page 10 :per-page 100) (select))
+(-> base (c/paginate :page 10 :per-page 100) (select))
 ;; SELECT `person`.* FROM `person` WHERE `person`.`age` > 30 LIMIT 100 OFFSET 900
 ;; SELECT COUNT(`person`.`id`) AS `count` FROM `person`
 ```
-
-Result sets contain metadata with key `:page` containing:
+Inspect pagination information
 
 ```clojure
-{:total - total number of records for all pages
- :per   - per page argument
- :curr  - current page number
- :prev  - previous page number, nil if no previous page
- :next  - next page number, nil if no next page
- :last  - last page number}
+(c/page-info (-> base (c/paginate :page 4) (select)))
+;; => {:total - total number of records for all pages
+;;     :per   - per page argument
+;;     :curr  - current page number
+;;     :prev  - previous page number, nil if no previous page
+;;     :next  - next page number, nil if no next page
+;;     :last  - last page number}
  ```
 
 *An additional query is required to gather this information*
@@ -57,9 +57,9 @@ Result sets contain metadata with key `:page` containing:
 Prevent additional query and just apply a `limit` and `offset` to query
 
 ```clojure
-(-> base (paginate :page 3 :meta? false) (select))
+(-> base (c/paginate :page 3 :meta? false) (select))
 ;; SELECT `person`.* FROM `person` WHERE `person`.`age` > 30 LIMIT 25 OFFSET 50
-;; NO ADDITIONAL QUERY
+;; NO ADDITIONAL QUERY - c/page-info returns nil
 ```
 
 ## Eager Loading

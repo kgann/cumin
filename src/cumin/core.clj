@@ -30,19 +30,6 @@
                (partial includes* ~sub-ent ~m (fn [q#]
                                                 (-> q# ~@body)))))
 
-(defn force-index
-  "Force the use of `index` for `query`
-
-  ```
-  (select person
-    (force-index \"person_index\"))
-  ```"
-  [query index]
-  (update-in query
-             [:from 0 :table]
-             (partial format "%s FORCE INDEX (%s)")
-             (name index)))
-
 (defn re-order
   "Remove any `order` clause from a query map and replace with `[field dir]`
 
