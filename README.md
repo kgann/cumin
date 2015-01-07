@@ -140,9 +140,12 @@ Useful when gathering ID's from another resource (Elastic Search) and fetching r
 
 (defentity person)
 
+(def ids [1 3 5 9 7])
+
 (select person
-  (post-order :id [1 3 5])) ;; records with ID's other than 1,3 or 5
-                            ;; are appended and retain their original ordering
+  (where {:id [in ids]})
+  (post-order :id ids)) ;; records with ID's other than 1, 3, 5, 9 or 7
+                        ;; are appended and retain their original ordering
 ```
 
 ## Re Ordering
