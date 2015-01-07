@@ -80,13 +80,13 @@
 
       (is (nil? (:page (meta r3))))))
 
-    (testing "meta data query removes post-queries, limit, offset, and order"
-      (is (= (with-out-str
-               (dry-run (select person
-                                (order :id)
-                                (fields :id :age)
-                                (post-query (fn [rows] (select person) rows))
-                                (paginate :page 1 :per-page 2))))
-             (str "dry run :: SELECT `person`.`id`, `person`.`age` FROM `person` ORDER BY `person`.`id` ASC LIMIT 2 OFFSET 0 :: []\n"
-                  "dry run :: SELECT `person`.* FROM `person` :: []\n"
-                  "dry run :: SELECT COUNT(`person`.`id`) AS `count` FROM `person` :: []\n")))))
+  (testing "metadata query removes post-queries, limit, offset, and order"
+    (is (= (with-out-str
+             (dry-run (select person
+                              (order :id)
+                              (fields :id :age)
+                              (post-query (fn [rows] (select person) rows))
+                              (paginate :page 1 :per-page 2))))
+           (str "dry run :: SELECT `person`.`id`, `person`.`age` FROM `person` ORDER BY `person`.`id` ASC LIMIT 2 OFFSET 0 :: []\n"
+                "dry run :: SELECT `person`.* FROM `person` :: []\n"
+                "dry run :: SELECT COUNT(`person`.`id`) AS `count` FROM `person` :: []\n")))))

@@ -25,13 +25,17 @@ Add the following dependency to your `project.clj` file:
 Paginate query using the default `per-page` set on the entity
 
 ```clojure
-(-> base (paginate :page 2))
+(-> base (paginate :page 3) (select))
+;; SELECT `person`.* FROM `person` WHERE `person`.`age` > 30 LIMIT 25 OFFSET 50
+;; SELECT COUNT(`person`.`id`) AS `count` FROM `person`
 ```
 
 Paginate query and specify `:per-page`
 
 ```clojure
-(-> base (paginate :page 10 :per-page 100))
+(-> base (paginate :page 10 :per-page 100) (select))
+;; SELECT `person`.* FROM `person` WHERE `person`.`age` > 30 LIMIT 100 OFFSET 900
+;; SELECT COUNT(`person`.`id`) AS `count` FROM `person`
 ```
 
 Result sets contain metadata with key `:page` containing:
@@ -50,7 +54,9 @@ Result sets contain metadata with key `:page` containing:
 Prevent additional query and just apply a `limit` and `offset` to query
 
 ```clojure
-(-> base (paginate :page 3 :meta? false))
+(-> base (paginate :page 3 :meta? false) (select))
+;; SELECT `person`.* FROM `person` WHERE `person`.`age` > 30 LIMIT 25 OFFSET 50
+;; NO ADDITIONAL QUERY
 ```
 
 ## License
