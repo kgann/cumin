@@ -1,4 +1,5 @@
-(ns cumin.core)
+(ns cumin.core
+  (:require [korma.core :refer :all]))
 
 (defn- stitch [c1 c2 k [pk fk]]
   (let [res (group-by fk c2)]
@@ -42,10 +43,6 @@
   [query field & [dir]]
   (-> query (assoc :order []) (order field dir)))
 
-(defn post-assoc
-  "Setup post-query to associate key values for each row"
-  [query & kvs]
-  (post-query query (partial map #(apply assoc % kvs))))
 
 (defn post-order
   "Setup post-query to order results based ok `f` and `coll`"
