@@ -5,11 +5,6 @@
 
 (defentity person)
 
-(deftest forcing-indexes
-  (testing "correct select statement"
-    (is (= (with-out-str (dry-run (select person (force-index "person_index"))))
-           "dry run :: SELECT `person`.* FROM `person FORCE INDEX (person_index)` :: []\n"))))
-
 (deftest re-ordering
   (testing "correct select statement"
     (is (= (with-out-str (dry-run (select person (order :name) (re-order :id))))
