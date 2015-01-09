@@ -53,6 +53,6 @@
   ```"
   [query f coll]
   (post-query query (fn [rows]
-                      (let [grouped (into {} (map (juxt f identity) rows))]
-                        (apply conj (mapv grouped coll)
-                                    (remove #(some #{(f %)} coll) rows))))))
+                      (apply conj
+                             (vec (mapcat (group-by f rows) coll))
+                             (remove #(some #{(f %)} coll) rows)))))
