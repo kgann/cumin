@@ -3,9 +3,9 @@ cumin
 
 Some spice for your Korma SQL
 
-## Installation
+## ~~Installation~~
 
-Add the following dependency to your `project.clj` file:
+~~Add the following dependency to your `project.clj` file:~~
 
     [cumin "0.1.0"]
 
@@ -66,7 +66,7 @@ Prevent additional query and just apply a `limit` and `offset` to query
 
 Eager load records without using Korma relationships. Specify primary and foreign keys inline.
 
-A call to `include` must have an options map containing at least the primary key from the parent and the foreign key of the relationship.
+A call to `includes` must have an options map containing at least the primary key from the parent and the foreign key of the relationship.
 
 ```clojure
 (use 'cumin.core)
@@ -80,7 +80,7 @@ Eagerly load all valid emails
 
 ```clojure
 (select person
-  (include email {:id :person_id}
+  (includes email {:id :person_id}
            (where {:valid true})))
 ;; => [{:name Kyle
 ;;      :age 30
@@ -92,7 +92,7 @@ Eagerly load invalid emails and store in `:invalid_email` key
 
 ```clojure
 (select person
-  (include email {:id :person_id :as :invalid_email}
+  (includes email {:id :person_id :as :invalid_email}
            (where {:valid false})))
 ;; => [{:name Kyle
 ;;      :age 30
@@ -100,13 +100,13 @@ Eagerly load invalid emails and store in `:invalid_email` key
 ;;    ... ]
 ```
 
-Nest `include` calls arbitrarily
+Nest `includes` calls arbitrarily
 
 ```clojure
 (select person
-  (include email {:id :person_id :as :invalid_email}
+  (includes email {:id :person_id :as :invalid_email}
            (where {:valid true})
-           (include email-body {:id :email_id}
+           (includes email-body {:id :email_id}
                     (fields :body :id))))
 ;; => [{:name Kyle
 ;;      :age 30
@@ -122,7 +122,7 @@ Join any information you want and use that for the eager loading
 (select person
   (fields :* [:emails.id :email_id])
   (join :inner email (= :id :emails.person_id))
-  (include email-body {:email_id :email_id}))
+  (includes email-body {:email_id :email_id}))
 ;; => [{:name Kyle
 ;;      :age 30
 ;;      :email_id 10
