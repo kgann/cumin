@@ -5,9 +5,9 @@ Some spice for your [Korma SQL](http://sqlkorma.com) - pagination, eager loading
 
 [Korma on Github](https://github.com/korma/Korma)
 
-## ~~Installation~~
+## Installation
 
-~~Add the following dependency to your `project.clj` file:~~
+Add the following dependency to your `project.clj` file:
 
     [cumin "0.1.0"]
 
