@@ -5,30 +5,37 @@
   (let [res (group-by fk c2)]
     (mapv (fn [row]
             (if-let [rs (get res (pk row))]
-              (assoc-in row k rs)
+              (assoc row k rs)
               row))
           c1)))
 
-(defn- includes* [ent mapping body-fn rows]
+(defn ^:no-doc include* [ent mapping body-fn rows]
   (let [[pk fk] (first (dissoc mapping :as))
-        as (get mapping :as (keyword (:table ent)))
-        pks (distinct (remove nil? (map pk rows)))]
+        pks (distinct (remove nil? (map pk rows)))
+        sub-q (-> (select* ent) (body-fn))]
     (if (seq pks)
       (stitch rows
-              (select ent
-                (body-fn)
-                (update-in [:fields] (comp distinct conj) fk)
-                (where {fk [in pks]}))
-              as
+              (-> sub-q
+                  (cond-> (not-any? #{:* :korma.core/* fk} (:fields sub-q))
+                          (update-in [:fields] conj fk))
+                  (where {fk [in pks]})
+                  (select))
+              (get mapping :as (keyword (:table ent)))
               [pk fk])
       rows)))
 
-(defmacro includes
-  "Eager load records with custom relationship mapping"
+(defmacro include
+  "Eager load records with custom relationship mapping
+
+  ```
+  (select person
+    (include email {:id :email_id :as person_emails}
+      (where {:valid true})))
+  ```'"
   [query sub-ent m & body]
   `(post-query ~query
-               (partial includes* ~sub-ent ~m (fn [q#]
-                                                (-> q# ~@body)))))
+               (partial include* ~sub-ent ~m (fn [q#]
+                                               (-> q# ~@body)))))
 
 (defn re-order
   "Remove any `order` clause from a query map and replace with `[field dir]`
