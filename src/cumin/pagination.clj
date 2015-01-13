@@ -88,6 +88,7 @@
    * `:page` - page of query results
    * `:per-page` - number of records to select
    * `:info?` - false to prevent post-query from firing to gather and calculate page info
+
   ```
   (select person
     (where {:age [> 30]})
