@@ -66,7 +66,7 @@ Prevent additional query and just apply a `limit` and `offset` to query
 
 Eager load records without using Korma relationships. Specify primary and foreign keys inline.
 
-A call to `includes` must have an options map containing at least the primary key from the parent and the foreign key of the relationship.
+A call to `include` must have an options map containing at least the primary key from the parent and the foreign key of the relationship.
 
 ```clojure
 (use 'cumin.core)
@@ -80,8 +80,8 @@ Eagerly load all valid emails
 
 ```clojure
 (select person
-  (includes email {:id :person_id}
-           (where {:valid true})))
+  (include email {:id :person_id}
+    (where {:valid true})))
 ;; => [{:name Kyle
 ;;      :age 30
 ;;      :email [{:address "foo@bar.com" :valid true}]}
@@ -92,22 +92,22 @@ Eagerly load invalid emails and store in `:invalid_email` key
 
 ```clojure
 (select person
-  (includes email {:id :person_id :as :invalid_email}
-           (where {:valid false})))
+  (include email {:id :person_id :as :invalid_email}
+    (where {:valid false})))
 ;; => [{:name Kyle
 ;;      :age 30
 ;;      :invalid_email [{:address "bad@invalid.com" :valid false}]}
 ;;    ... ]
 ```
 
-Nest `includes` calls arbitrarily
+Nest `include` calls arbitrarily
 
 ```clojure
 (select person
-  (includes email {:id :person_id :as :invalid_email}
-           (where {:valid true})
-           (includes email-body {:id :email_id}
-                    (fields :body :id))))
+  (include email {:id :person_id :as :invalid_email}
+    (where {:valid true})
+    (include email-body {:id :email_id}
+      (fields :body :id))))
 ;; => [{:name Kyle
 ;;      :age 30
 ;;      :email [{:address "foo@bar.com"
@@ -122,7 +122,7 @@ Join any information you want and use that for the eager loading
 (select person
   (fields :* [:emails.id :email_id])
   (join :inner email (= :id :emails.person_id))
-  (includes email-body {:email_id :email_id}))
+  (include email-body {:email_id :email_id}))
 ;; => [{:name Kyle
 ;;      :age 30
 ;;      :email_id 10

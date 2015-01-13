@@ -4,7 +4,10 @@
             [clojure.java.jdbc :as sql]))
 
 (defdb mem-db
-  (h2 {:db "mem:test" :make-pool? true :delimiters "`"}))
+  (h2 {:db "mem:test"
+       :make-pool? true
+       :delimiters "`"
+       :naming {:keys clojure.string/lower-case}}))
 
 (def person-ddl
   (sql/create-table-ddl "person"
@@ -14,13 +17,22 @@
 (def email-ddl
   (sql/create-table-ddl "email"
     [:id "IDENTITY" "NOT NULL" "PRIMARY KEY"]
-    [:person_id "INTEGER" "NOT NULL"]))
+    [:person_id "INTEGER" "NOT NULL"]
+    [:valid "BOOLEAN" "NOT NULL" "DEFAULT" "true"]))
+
+(def email-body-ddl
+  (sql/create-table-ddl "email_body"
+    [:id "IDENTITY" "NOT NULL" "PRIMARY KEY"]
+    [:email_id "INTEGER" "NOT NULL"]
+    [:body "VARCHAR"]))
 
 (def schema
   ["DROP TABLE IF EXISTS person;"
    "DROP TABLE IF EXISTS email;"
+   "DROP TABLE IF EXISTS email_body;"
    person-ddl
-   email-ddl])
+   email-ddl
+   email-body-ddl])
 
 (defn create-fixtures [entity & data]
   (insert entity (values data)))
@@ -29,7 +41,7 @@
   `(do
      (clojure.test/use-fixtures :once
        (fn [f#]
-         (doall (map exec-raw schema))
+         (dorun (map exec-raw schema))
          (f#)))
 
      (clojure.test/use-fixtures :each
