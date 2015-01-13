@@ -44,7 +44,7 @@
 (defn ^:no-doc exec-paginated
   [f query & args]
   (let [results (apply f query args)]
-    (if (and (get-in query [::pagination :meta?]) (sequential? results))
+    (if (and (get-in query [::pagination :info?]) (sequential? results))
       (with-page-meta query results)
       results)))
 
@@ -87,18 +87,17 @@
 
    * `:page` - page of query results
    * `:per-page` - number of records to select
-   * `:meta?` - false to prevent post-query from firing
-                and associng metadata map (default true)
+   * `:info?` - false to prevent post-query from firing to gather and calculate page info
   ```
   (select person
     (where {:age [> 30]})
     (paginate :page 3 :per-page 25))
   ```"
-  [query & {:keys [page per-page meta?]
-            :or {meta? true
+  [query & {:keys [page per-page info?]
+            :or {info? true
                  per-page (get-in query [:ent ::per-page] per-page-default)}}]
   {:pre [(every? number? [page per-page]) (pos? page) (pos? per-page)]}
   (-> query
       (limit per-page)
       (offset (page-offset page per-page))
-      (assoc ::pagination {:page page :per-page per-page :meta? meta?})))
+      (assoc ::pagination {:page page :per-page per-page :info? info?})))

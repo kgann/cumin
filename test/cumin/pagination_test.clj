@@ -37,11 +37,11 @@
       (is (= per-page-default (get-in (paginate {} :page 1)
                                       [:cumin.pagination/pagination :per-page]))))
 
-    (testing "meta?"
+    (testing "info?"
       (is (true? (get-in (paginate {} :page 1)
-                         [:cumin.pagination/pagination :meta?])))
-      (is (false? (get-in (paginate {} :page 1 :meta? false)
-                          [:cumin.pagination/pagination :meta?]))))
+                         [:cumin.pagination/pagination :info?])))
+      (is (false? (get-in (paginate {} :page 1 :info? false)
+                          [:cumin.pagination/pagination :info?]))))
 
     (testing "limit"
       (is (= 100 (-> (select* person) (paginate :page 1 :per-page 100) (:limit)))))
@@ -61,7 +61,7 @@
   (testing "metadata"
     (let [r1 (select person (paginate :page 2 :per-page 2))
           r2 (select person (paginate :page 1 :per-page 5))
-          r3 (select person (paginate :page 2 :per-page 2 :meta? false))]
+          r3 (select person (paginate :page 2 :per-page 2 :info? false))]
       (is (= (page-info r1) {:total 5
                              :per 2
                              :curr 2
