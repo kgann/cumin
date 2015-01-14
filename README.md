@@ -84,16 +84,57 @@ Inspect pagination information
 Prevent additional query and just apply a `limit` and `offset` to query
 
 ```clojure
-(select (paginate :page 3 :info? false))
-;; SELECT `person`.* FROM `person` WHERE `person`.`age` > 30 LIMIT 25 OFFSET 50
+(select person (paginate :page 3 :info? false))
+;; SELECT `person`.* FROM `person` LIMIT 25 OFFSET 50
 ;; NO ADDITIONAL QUERY - page-info returns nil
 ```
 
 ## Eager Loading
 
-Eager load records without using Korma relationships. Specify primary and foreign keys inline.
+Why not use Korma's relationships?
 
-A call to `include` must have an options map containing at least the primary key from the parent and the foreign key of the relationship.
+At times they are *perfect*, other times queries are not executed as I'd like.
+
+`include` provides a very simple way to setup a `post-query` that selects a result set based on a mapping you provide and "stitches" the two result sets together. You do not need to specify relationships when defining entities.
+
+If you want to model a `has many through` relationship, just perform the `join` as you would and use `include` to fetch the child records lazily.
+
+Consider these examples using Kormas relationship features (`with` and `with-batch`):
+
+```clojure
+(declare person email)
+
+(defentity email
+  (belongs-to person))
+
+(defentity person
+  (has-many email))
+
+(select person (with email)) ;; N+1 queries
+(select person (with-batch email)) ;; 2 queries
+(select person (include email {:id :person_id})) ;; 2 queries
+
+(select email (with person))
+;; 1 join query
+;; data is contained in a single map
+;; colliding keys are subject to Korma's naming strategy
+;; you end up with keys like `:id_1` and `:id_2`
+
+(select email (include person {:person_id :id})) ;; 2 queries - no key collisions
+```
+
+If a `person` was defined with a `has-one email` relationship, Korma will not allow you to fetch emails in batches.
+
+```clojure
+(defentity person
+  (has-one email))
+
+(select person (with email)) ;; 1 join query
+(select person (with-batch email)) ;; 1 join query
+(select person (include email {:id :person_id})) ;; 2 queries
+```
+
+A call to `include` must supply a map containing at least the primary key from the parent and the foreign key of the child.
 
 Eagerly load all valid emails
 
