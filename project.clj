@@ -1,6 +1,6 @@
 (defproject cumin "0.2.0-SNAPSHOT"
-  :description "Cumin - some spice for your Korma SQL"
-  :url "http://github.com/kgann/cumin"
+  :description "Cumin - some spice for your Korma SQL (pagination, eager loading, query helpers)"
+  :url "https://github.com/kgann/cumin"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
