@@ -8,8 +8,23 @@
 
 (defentity person)
 (defentity email)
+
+(defentity valid-email
+  (table "email")
+  (scope (where {:valid true})
+         (order :id :desc)))
+
 (defentity email-body
   (table "email_body"))
+
+(deftest default-scope
+  (testing "scoped?"
+    (is (true? (scoped? valid-email))))
+  (testing "scope"
+    (is (= (with-out-str (dry-run (select valid-email)))
+           "dry run :: SELECT `email`.* FROM `email` WHERE (`email`.`valid` = ?) ORDER BY `email`.`id` DESC :: [true]\n"))
+    (is (= (sql-only (select valid-email))
+           "SELECT `email`.* FROM `email` WHERE (`email`.`valid` = ?) ORDER BY `email`.`id` DESC"))))
 
 (deftest re-ordering
   (testing "correct select statement"

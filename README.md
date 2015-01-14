@@ -1,18 +1,19 @@
 Cumin
 =====
 
-Some spice for your [Korma SQL](http://sqlkorma.com) - pagination, eager loading, query helpers
+Some spice for your [Korma SQL](http://sqlkorma.com) - pagination, eager loading, scopes, query helpers
 
 [Korma on Github](https://github.com/korma/Korma)
 
 ## Installation
 
-Add the following dependency to your `project.clj` file:
+Add the following dependency to your `project.clj` file for the latest release:
 
     [cumin "0.1.0"]
 
 ## Documentaion
 * [API docs](http://kgann.github.io/cumin)
+* [Changelog](#changelog)
 
 ## Usage
 
@@ -27,6 +28,10 @@ Add the following dependency to your `project.clj` file:
 
 (defentity person
   (per-page 25))
+
+(defentity teenager
+  (table :person)
+  (scope (where {:age [between [13 19]]})))
 
 (defentity email)
 
@@ -192,6 +197,20 @@ Join any information you want and use that for the eager loading
 ;;    ... ]
 ```
 
+## Scope
+
+Supply a query body to an entity to be applied for all **select** queries (does not affect update, delete, insert, union, union-all or intersect)
+
+```clojure
+(defentity teenager
+  (table :person)
+  (scope (where {:age [between [13 19]]})
+         (order :id :desc)))
+
+(select teenager)
+;; SELECT `person`.* FROM `person` WHERE (`person`.`age` BETWEEN 13 AND 19) ORDER BY `person`.`id` DESC
+```
+
 ## Post Ordering
 
 Order result set based on a `fn` and a collection of values.
@@ -217,6 +236,12 @@ Useful when gathering ID's from another resource (Elastic Search) and fetching r
 (select (-> base (re-order :name :desc)))
 ;; SELECT `person`.* FROM `person` ORDER BY `person`.`name` DESC
 ```
+
+## Changelog
+
+* v0.2.0
+  * add `scope` entity fn
+* v0.1.0 - intial release
 
 ## License
 

@@ -1,5 +1,6 @@
 (ns cumin.core
-  (:require [korma.core :refer :all]))
+  (:require [korma.core :refer :all]
+            [robert.hooke :as hooke]))
 
 (defn- stitch [c1 c2 k [pk fk]]
   (let [res (group-by fk c2)]
@@ -36,6 +37,33 @@
   `(post-query ~query
                (partial include* ~sub-ent ~m (fn [q#]
                                                (-> q# ~@body)))))
+
+(defn scoped?
+  "Return true if Korma entity has a default scope applied"
+  [ent]
+  (contains? ent ::scope))
+
+(defmacro scope
+  "Apply a default query body for all queries executed for entity `ent`
+
+  ```
+  (defentity teenager
+    (table :person)
+    (scope
+      (where {:age [> 12] :age [< 20]})
+      (order :name :desc)))
+  ```"
+  [ent & body]
+  `(assoc ~ent ::scope (fn [q#] (-> q# ~@body))))
+
+(defn ^:no-doc select-scoped* [f & [ent :as args]]
+  (let [query (apply f args)]
+    (if (scoped? ent)
+      ((::scope ent) query)
+      query)))
+
+(hooke/remove-hook #'korma.core/select* ::scope)
+(hooke/add-hook #'korma.core/select* ::scope #'select-scoped*)
 
 (defn re-order
   "Remove any `order` clause from a query map and replace with `[field dir]`
