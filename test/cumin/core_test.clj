@@ -14,12 +14,18 @@
   (scope (where {:valid true})
          (order :id :desc)))
 
+(defscoped [deleted-email valid-email]
+  (scope (where {:deleted true})))
+
 (defentity email-body
   (table "email_body"))
 
 (deftest default-scope
   (testing "scoped?"
     (is (true? (scoped? valid-email))))
+  (testing "defscoped"
+    (is (= (with-out-str (dry-run (select deleted-email)))
+           "dry run :: SELECT `email`.* FROM `email` WHERE (`email`.`valid` = ?) AND (`email`.`deleted` = ?) ORDER BY `email`.`id` DESC :: [true true]\n")))
   (testing "scope"
     (is (= (with-out-str (dry-run (select valid-email)))
            "dry run :: SELECT `email`.* FROM `email` WHERE (`email`.`valid` = ?) ORDER BY `email`.`id` DESC :: [true]\n"))

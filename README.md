@@ -21,19 +21,24 @@ Add the following dependency to your `project.clj` file for the latest release:
 (ns hello-world
   (:require [korma.core :refer :all]
             [korma.db :refer :all]
-            [cumin.core :refer [include post-order re-order]]
+            [cumin.core :refer [include post-order re-order scope defscoped]]
             [cumin.pagination :refer [paginate per-page page-info]]))
 
 (defdb db ...)
 
+;; define an entity with a default `per-page`
 (defentity person
   (per-page 25))
 
-(defentity teenager
-  (table :person)
-  (scope (where {:age [between [13 19]]})))
+;; define entity `teenager` merging all properties of `person`
+(defscoped [teenager person]
+  ;; apply body of `scope` to all select queries
+  (scope
+    (where {:age [between [13 19]]})))
 
-(defentity email)
+;; use `scope` without `defscoped` freely
+(defentity email
+  (scope (order :id :desc)))
 
 (-> (select* person)
 
@@ -94,6 +99,38 @@ Prevent additional query and just apply a `limit` and `offset` to query
 ;; NO ADDITIONAL QUERY - page-info returns nil
 ```
 
+## Scopes
+
+Specify query clauses to be applied for all **select** queries (does not affect update, delete, insert, union, union-all or intersect)
+
+```clojure
+(defentity teenager
+  (table :person)
+  (scope (where {:age [between [13 19]]})
+         (order :id :desc)))
+
+(select teenager)
+;; SELECT `person`.* FROM `person` WHERE (`person`.`age` BETWEEN 13 AND 19) ORDER BY `person`.`id` DESC
+```
+
+The entity definition could be simplified by merging all properties of `person` instead of manually setting them.
+
+*scopes from entities are composed and applied in the order they were defined*
+
+```clojure
+(defentity person
+  (entity-fields :id))
+
+(defscoped [teenager person]
+  (scope (where {:age [between [13 19]]})
+         (order :id :desc)))
+
+(select teenager)
+;; SELECT `person`.`id` FROM `person` WHERE (`person`.`age` BETWEEN 13 AND 19) ORDER BY `person`.`id` DESC
+```
+
+*`defscoped` supports everything `defentity` supports.*
+
 ## Eager Loading
 
 Why not use Korma's relationships?
@@ -101,8 +138,6 @@ Why not use Korma's relationships?
 At times they are *perfect*, other times queries are not executed as I'd like.
 
 `include` provides a very simple way to setup a `post-query` that selects a result set based on a mapping you provide and "stitches" the two result sets together. You do not need to specify relationships when defining entities.
-
-If you want to model a `has many through` relationship, just perform the `join` as you would and use `include` to fetch the child records lazily.
 
 Consider these examples using Kormas relationship features (`with` and `with-batch`):
 
@@ -119,25 +154,16 @@ Consider these examples using Kormas relationship features (`with` and `with-bat
 (select person (with-batch email)) ;; 2 queries
 (select person (include email {:id :person_id})) ;; 2 queries
 
-(select email (with person))
 ;; 1 join query
 ;; data is contained in a single map
 ;; colliding keys are subject to Korma's naming strategy
 ;; you end up with keys like `:id_1` and `:id_2`
+(select email (with person))
 
 (select email (include person {:person_id :id})) ;; 2 queries - no key collisions
 ```
 
 If a `person` was defined with a `has-one email` relationship, Korma will not allow you to fetch emails in batches.
-
-```clojure
-(defentity person
-  (has-one email))
-
-(select person (with email)) ;; 1 join query
-(select person (with-batch email)) ;; 1 join query
-(select person (include email {:id :person_id})) ;; 2 queries
-```
 
 A call to `include` must supply a map containing at least the primary key from the parent and the foreign key of the child.
 
@@ -147,10 +173,10 @@ Eagerly load all valid emails
 (select person
   (include email {:id :person_id}
     (where {:valid true})))
-;; => [{:name Kyle
-;;      :age 30
-;;      :email [{:address "foo@bar.com" :valid true}]}
-;;    ... ]
+=> [{:name Kyle
+     :age 30
+     :email [{:address "foo@bar.com" :valid true}]}
+   ... ]
 ```
 
 Eagerly load invalid emails as `:invalid_email`
@@ -159,10 +185,10 @@ Eagerly load invalid emails as `:invalid_email`
 (select person
   (include email {:id :person_id :as :invalid_email}
     (where {:valid false})))
-;; => [{:name Kyle
-;;      :age 30
-;;      :invalid_email [{:address "bad@invalid.com" :valid false}]}
-;;    ... ]
+=> [{:name Kyle
+     :age 30
+     :invalid_email [{:address "bad@invalid.com" :valid false}]}
+   ... ]
 ```
 
 Nest `include` calls arbitrarily
@@ -175,12 +201,12 @@ Nest `include` calls arbitrarily
     (where {:valid true})
     (include email-body {:id :email_id}
       (fields :body :id))))
-;; => [{:name Kyle
-;;      :age 30
-;;      :email [{:address "foo@bar.com"
-;;               :valid true
-;;               :email_body [{:body "..." :id 1}]}]}
-;;    ... ]
+=> [{:name Kyle
+     :age 30
+     :email [{:address "foo@bar.com"
+              :valid true
+              :email_body [{:body "..." :id 1}]}]}
+            ... ]
 ```
 
 Join any information you want and use that for the eager loading
@@ -190,25 +216,11 @@ Join any information you want and use that for the eager loading
   (fields :* [:emails.id :email_id])
   (join :inner email (= :id :emails.person_id))
   (include email-body {:email_id :email_id}))
-;; => [{:name Kyle
-;;      :age 30
-;;      :email_id 10
-;;      :email_body [{:body "..." :id 1 :email_id 10}]}
-;;    ... ]
-```
-
-## Scope
-
-Supply a query body to an entity to be applied for all **select** queries (does not affect update, delete, insert, union, union-all or intersect)
-
-```clojure
-(defentity teenager
-  (table :person)
-  (scope (where {:age [between [13 19]]})
-         (order :id :desc)))
-
-(select teenager)
-;; SELECT `person`.* FROM `person` WHERE (`person`.`age` BETWEEN 13 AND 19) ORDER BY `person`.`id` DESC
+=> [{:name Kyle
+     :age 30
+     :email_id 10
+     :email_body [{:body "..." :id 1 :email_id 10}]}
+   ... ]
 ```
 
 ## Post Ordering
@@ -241,6 +253,7 @@ Useful when gathering ID's from another resource (Elastic Search) and fetching r
 
 * v0.2.0
   * add `scope` entity fn
+  * add `defscoped` macro for merging entity properties
 * v0.1.0 - intial release
 
 ## License

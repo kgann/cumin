@@ -38,6 +38,13 @@
                (partial include* ~sub-ent ~m (fn [q#]
                                                (-> q# ~@body)))))
 
+(defmacro defscoped
+  "Define entity `name` that merges all properties of `parent` before applying `body`"
+  [[name parent] & body]
+  `(defentity ~name
+     (merge ~parent)
+     ~@body))
+
 (defn scoped?
   "Return true if Korma entity has a default scope applied"
   [ent]
@@ -50,16 +57,17 @@
   (defentity teenager
     (table :person)
     (scope
-      (where {:age [> 12] :age [< 20]})
+      (where {:age [between [13 19]]})
       (order :name :desc)))
   ```"
   [ent & body]
-  `(assoc ~ent ::scope (fn [q#] (-> q# ~@body))))
+  `(update-in ~ent [::scope] conj (fn [q#] (-> q# ~@body))))
 
 (defn ^:no-doc select-scoped* [f & [ent :as args]]
-  (let [query (apply f args)]
+  (let [query (apply f args)
+        scope-fn (apply comp (::scope ent))]
     (if (scoped? ent)
-      ((::scope ent) query)
+      (dissoc (scope-fn query) ::scope)
       query)))
 
 (hooke/remove-hook #'korma.core/select* ::scope)
