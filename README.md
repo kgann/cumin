@@ -254,7 +254,7 @@ Useful when gathering ID's from another resource (Elastic Search) and fetching r
 * v0.2.0
   * add `scope` entity fn
   * add `defscoped` macro for merging entity properties
-* v0.1.0 - intial release
+* v0.1.0 - initial release
 
 ## License
 
