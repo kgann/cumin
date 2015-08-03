@@ -251,6 +251,8 @@ Useful when gathering ID's from another resource (Elastic Search) and fetching r
 
 ## Changelog
 
+* v0.2.1
+  * Merge [PR #1](https://github.com/kgann/cumin/pull/1) from [trptcolin](https://github.com/trptcolin)
 * v0.2.0
   * add `scope` entity fn
   * add `defscoped` macro for merging entity properties
