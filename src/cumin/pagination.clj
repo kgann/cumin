@@ -22,13 +22,14 @@
     (dec curr-page)))
 
 (defn- select-total [query]
-  (-> query
-      (dissoc ::pagination :post-queries :limit :offset :order)
-      (assoc :fields [])
-      (aggregate (count :*) :count)
-      (select)
-      (ffirst)
-      (last)))
+  (let [pk (get-in query [:ent :pk] :*)]
+    (-> query
+        (dissoc ::pagination :post-queries :limit :offset :order)
+        (assoc :fields [])
+        (aggregate (count pk) :count)
+        (select)
+        (ffirst)
+        (last))))
 
 (defn- with-page-meta [query coll]
   (let [{:keys [page per-page]} (::pagination query)
