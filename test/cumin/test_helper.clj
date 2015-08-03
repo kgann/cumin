@@ -32,15 +32,23 @@
     [:person_id "INTEGER" "NOT NULL"]
     [:line_1 "VARCHAR"]))
 
+(def person-comment-ddl
+  (sql/create-table-ddl "person_comment"
+    [:key "IDENTITY" "NOT NULL" "PRIMARY KEY"]
+    [:person_id "INTEGER" "NOT NULL"]
+    [:comment "VARCHAR" "NOT NULL"]))
+
 (def schema
   ["DROP TABLE IF EXISTS person;"
    "DROP TABLE IF EXISTS email;"
    "DROP TABLE IF EXISTS email_body;"
    "DROP TABLE IF EXISTS address;"
+   "DROP TABLE IF EXISTS person_comment;"
    person-ddl
    email-ddl
    email-body-ddl
-   address-ddl])
+   address-ddl
+   person-comment-ddl])
 
 (defn create-fixtures [entity & data]
   (insert entity (values data)))

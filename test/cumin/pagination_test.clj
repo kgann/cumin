@@ -12,6 +12,10 @@
 (defentity person-with-per-page-default
   (per-page 100))
 
+(defentity person-comment
+  (table "person_comment")
+  (pk :key))
+
 (deftest entity-per-page
   (testing "per-page"
     (is (= 100 (:cumin.pagination/per-page person-with-per-page-default)))
@@ -77,6 +81,12 @@
                              :last 1}))
 
       (is (nil? (page-info r3)))))
+
+  (testing "does not require primary key to be named :id"
+    (is (= []
+           (-> (select* person-comment)
+               (paginate :page 3)
+               select))))
 
   (testing "metadata query removes post-queries, limit, offset, and order"
     (is (= (with-out-str
