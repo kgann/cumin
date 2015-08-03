@@ -97,4 +97,4 @@
                               (paginate :page 1 :per-page 2))))
            (str "dry run :: SELECT `person`.`id`, `person`.`age` FROM `person` ORDER BY `person`.`id` ASC LIMIT 2 OFFSET 0 :: []\n"
                 "dry run :: SELECT `person`.* FROM `person` :: []\n"
-                "dry run :: SELECT COUNT(`person`.`id`) AS `count` FROM `person` :: []\n")))))
+                "dry run :: SELECT COUNT(`person`.*) AS `count` FROM `person` :: []\n")))))
