@@ -10,19 +10,29 @@
               row))
           c1)))
 
+(defn- ^:no-doc apply-transforms
+  [results f k]
+  (mapv (fn [row]
+          (if (contains? row k)
+            (update-in row [k] #(mapv f %))
+            row))
+        results))
+
 (defn ^:no-doc include* [ent mapping body-fn rows]
   (let [[pk fk] (first (dissoc mapping :as))
+        as-k (get mapping :as (keyword (:table ent)))
         pks (distinct (remove nil? (map pk rows)))
-        sub-q (-> (select* ent) (body-fn))]
-    (if (seq pks)
-      (stitch rows
-              (-> sub-q
-                  (cond-> (not-any? #{:* :korma.core/* fk} (:fields sub-q))
-                          (update-in [:fields] conj fk))
-                  (where {fk [in pks]})
-                  (select))
-              (get mapping :as (keyword (:table ent)))
-              [pk fk])
+        sub-q (-> ent (dissoc :transforms) (select*) (body-fn))
+        results (when (seq pks)
+                  (-> sub-q
+                      (cond-> (not-any? #{:* :korma.core/* fk} (:fields sub-q))
+                        (update-in [:fields] conj fk))
+                      (where {fk [in pks]})
+                      (select)))]
+    (if (seq results)
+      (-> rows
+          (stitch results as-k [pk fk])
+          (apply-transforms (apply comp (:transforms ent)) as-k))
       rows)))
 
 (defmacro include

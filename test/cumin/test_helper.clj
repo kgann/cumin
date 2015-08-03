@@ -26,13 +26,21 @@
     [:email_id "INTEGER" "NOT NULL"]
     [:body "VARCHAR"]))
 
+(def address-ddl
+  (sql/create-table-ddl "address"
+    [:id "IDENTITY" "NOT NULL" "PRIMARY KEY"]
+    [:person_id "INTEGER" "NOT NULL"]
+    [:line_1 "VARCHAR"]))
+
 (def schema
   ["DROP TABLE IF EXISTS person;"
    "DROP TABLE IF EXISTS email;"
    "DROP TABLE IF EXISTS email_body;"
+   "DROP TABLE IF EXISTS address;"
    person-ddl
    email-ddl
-   email-body-ddl])
+   email-body-ddl
+   address-ddl])
 
 (defn create-fixtures [entity & data]
   (insert entity (values data)))
