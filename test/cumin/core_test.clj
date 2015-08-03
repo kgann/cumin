@@ -1,13 +1,31 @@
 (ns cumin.core-test
   (:require [clojure.test :refer :all]
+            [clojure.string :as string]
             [cumin.core :refer :all]
             [cumin.test-helper :refer :all]
             [korma.core :refer :all]))
 
 (use-transactional-fixtures!)
 
+(defn- map-keys [f m]
+  (reduce-kv
+    (fn [acc k v] (assoc acc (f k) v))
+    {}
+    m))
+
+(defn- snake-case-keys [m]
+  (map-keys #(keyword (string/replace (name %) "-" "_"))
+            m))
+
+(defn- kebab-case-keys [m]
+  (map-keys #(keyword (string/replace (name %) "_" "-"))
+            m))
+
 (defentity person)
 (defentity email)
+(defentity address
+  (prepare snake-case-keys)
+  (transform kebab-case-keys))
 
 (defentity valid-email
   (table "email")
@@ -76,6 +94,11 @@
   (create-fixtures email-body
                    {:id 1 :email_id 1 :body "email 1"}
                    {:id 2 :email_id 2 :body "email 2"})
+  (create-fixtures address
+                   {:id 1 :person_id 1 :line_1 "123 Test Lane"}
+                   {:id 2 :person_id 1 :line_1 "234 Test Lane"}
+                   {:id 3 :person_id 2 :line_1 "987 Test Lane"}
+                   {:id 4 :person_id 2 :line_1 "876 Test Lane"})
 
   (testing "include"
     (is (= (select person (include email {:id :person_id}))
@@ -83,6 +106,13 @@
                                    {:id 2 :person_id 1 :valid false}]}
             {:id 2 :age 40 :email [{:id 3 :person_id 2 :valid true}
                                    {:id 4 :person_id 2 :valid false}]}])))
+
+  (testing "include with transforms/prepares"
+    (is (= (select person (include address {:id :person_id}))
+           [{:id 1 :age 30 :address [{:id 1 :person-id 1 :line-1 "123 Test Lane"}
+                                     {:id 2 :person-id 1 :line-1 "234 Test Lane"}]}
+            {:id 2 :age 40 :address [{:id 3 :person-id 2 :line-1 "987 Test Lane"}
+                                     {:id 4 :person-id 2 :line-1 "876 Test Lane"}]}])))
 
   (testing "include :as"
     (is (= (select person (include email {:id :person_id :as :person_email}))

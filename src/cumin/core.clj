@@ -13,16 +13,21 @@
 (defn ^:no-doc include* [ent mapping body-fn rows]
   (let [[pk fk] (first (dissoc mapping :as))
         pks (distinct (remove nil? (map pk rows)))
-        sub-q (-> (select* ent) (body-fn))]
+        sub-q (-> (select* ent) (body-fn))
+        results (when (seq pks)
+                  (-> sub-q
+                      (cond-> (not-any? #{:* :korma.core/* fk} (:fields sub-q))
+                        (update-in [:fields] conj fk))
+                      (where {fk [in pks]})
+                      (select)))
+        [transformed-fk] (-> {fk nil}
+                             ((apply comp (:transforms ent)))
+                             keys)]
     (if (seq pks)
       (stitch rows
-              (-> sub-q
-                  (cond-> (not-any? #{:* :korma.core/* fk} (:fields sub-q))
-                          (update-in [:fields] conj fk))
-                  (where {fk [in pks]})
-                  (select))
+              results
               (get mapping :as (keyword (:table ent)))
-              [pk fk])
+              [pk transformed-fk])
       rows)))
 
 (defmacro include
