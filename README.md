@@ -9,7 +9,7 @@ Some spice for your [Korma SQL](http://sqlkorma.com) - pagination, eager loading
 
 Add the following dependency to your `project.clj` file for the latest release:
 
-    [cumin "0.2.0"]
+    [cumin "0.2.1"]
 
 ## Documentaion
 * [API docs](http://kgann.github.io/cumin)
