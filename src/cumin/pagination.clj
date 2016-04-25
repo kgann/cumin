@@ -1,4 +1,5 @@
 (ns cumin.pagination
+  (:refer-clojure :exclude [update])
   (:require [korma.core :refer :all]
             [robert.hooke :as hooke]))
 
