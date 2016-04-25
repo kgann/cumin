@@ -1,4 +1,4 @@
-(defproject cumin "0.2.2"
+(defproject cumin "0.2.3"
   :description "Cumin - some spice for your Korma SQL"
   :url "https://github.com/kgann/cumin"
   :license {:name "Eclipse Public License"
