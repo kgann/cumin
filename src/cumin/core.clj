@@ -1,5 +1,5 @@
 (ns cumin.core
-  (:require [korma.core :refer :all]
+  (:require [korma.core :refer [order post-query select select* where defentity]]
             [robert.hooke :as hooke]))
 
 (defn- stitch [c1 c2 k [pk fk]]
