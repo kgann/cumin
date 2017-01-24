@@ -9,7 +9,7 @@ Some spice for your [Korma SQL](http://sqlkorma.com) - pagination, eager loading
 
 Add the following dependency to your `project.clj` file for the latest release:
 
-    [cumin "0.2.3"]
+    [cumin "0.2.4"]
 
 ## Documentaion
 * [API docs](http://kgann.github.io/cumin)
@@ -251,6 +251,8 @@ Useful when gathering ID's from another resource (Elastic Search) and fetching r
 
 ## Changelog
 
+* v0.2.4
+  * Merge [PR #4](https://github.com/kgann/cumin/pull/4) from [esanmiguelc](https://github.com/esanmiguelc)
 * v0.2.3
   * Merge [PR #3](https://github.com/kgann/cumin/pull/3) from [cpmcdaniel](https://github.com/cpmcdaniel)
 * v0.2.2
